@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Smart Mind Learning Centre</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    .logo-icon-img {
+      height: 60px;
+      width: auto;
+      vertical-align: middle;
+      margin-right: 7px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ===== HEADER / NAVBAR ===== -->
+  <header class="navbar">
+    <div class="container nav-container">
+      <div class="logo">
+      <img src="logo-icon.png" alt="Smart Mind Learning Centre Logo" class="logo-icon-img" />
+      <span>Smart Mind <small>Learning Centre</small></span>
+      </div>
+
+      <nav>
+        <ul class="nav-links" id="navLinks">
+          <li><a href="#home" class="active">Home</a></li>
+          <li><a href="#about">About</a></li>
+          <li><a href="#courses">Courses</a></li>
+          <li><a href="#faculty">Faculty</a></li>
+          <li><a href="#testimonials">Testimonials</a></li>
+          <li><a href="#contact">Contact</a></li>
+        </ul>
+      </nav>
+
+      <button class="hamburger" id="hamburger" aria-label="Toggle menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </header>
+
+  <!-- ===== HERO ===== -->
+  <section class="hero" id="home">
+    <div class="container hero-content">
+      <div class="hero-text">
+        <h1>Unlock Your Child's <span>Full Potential</span></h1>
+        <p>Smart Mind Learning Centre offers expert-led coaching for Grades 1–10, competitive exams, and skill-building programs — building strong foundations for a brighter future.</p>
+        <div class="hero-buttons">
+          <a href="#contact" class="btn btn-primary">Book Class</a>
+          <a href="#courses" class="btn btn-outline">Explore Courses</a>
+        </div>
+        <div class="hero-stats">
+          <div><h3 id="stat-students">0</h3><p>Students Taught</p></div>
+          <div><h3 id="stat-years">0</h3><p>Years of Excellence</p></div>
+          <div><h3 id="stat-results">0</h3><p>% Success Rate</p></div>
+        </div>
+      </div>
+      <div class="hero-image">
+        <div class="hero-card">📚 Personalized Learning</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== ABOUT ===== -->
+  <section class="about" id="about">
+    <div class="container">
+      <h2 class="section-title">About Us</h2>
+      <p class="section-subtitle">Nurturing minds since day one</p>
+      <div class="about-grid">
+        <div class="about-card">
+          <div class="icon">🎯</div>
+          <h3>Our Mission</h3>
+          <p>To provide quality, affordable education that helps every student achieve academic excellence and lifelong confidence.</p>
+        </div>
+        <div class="about-card">
+          <div class="icon">👩‍🏫</div>
+          <h3>Expert Faculty</h3>
+          <p>Our experienced teachers use proven teaching methods tailored to each student's pace and learning style.</p>
+        </div>
+        <div class="about-card">
+          <div class="icon">🏆</div>
+          <h3>Proven Results</h3>
+          <p>Consistent top scores, board exam toppers, and successful competitive exam qualifiers year after year.</p>
+        </div>
+        <div class="about-card">
+          <div class="icon">💡</div>
+          <h3>Modern Approach</h3>
+          <p>regular assessments, and doubt-clearing sessions to make learning effective and fun.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== COURSES ===== -->
+  <section class="courses" id="courses">
+    <div class="container">
+      <h2 class="section-title">Our Courses</h2>
+      <p class="section-subtitle">Choose Your Class & Syllabus</p>
+      <div class="courses-grid" id="coursesGrid">
+        <!-- Cards injected by JS -->
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== WHY CHOOSE US ===== -->
+  <section class="why-us">
+    <div class="container why-grid">
+      <div class="why-text">
+        <h2 class="section-title left">Why Choose Smart Mind?</h2>
+        <ul class="why-list">
+          <li>✔ Small batch sizes for personal attention</li>
+          <li>✔ Regular tests, report cards & parent updates</li>
+          <li>✔ Free doubt-clearing & revision sessions</li>
+          <li>✔ Affordable fee structure with flexible plans</li>
+          <li>✔ Safe, friendly and motivating environment</li>
+        </ul>
+        <a href="#contact" class="btn btn-primary">Join Now</a>
+      </div>
+      <div class="why-image">
+        <div class="why-card">🌟 Trusted by 1000+ Parents</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== FACULTY ===== -->
+  <section class="faculty" id="faculty">
+    <div class="container">
+      <h2 class="section-title">Meet Our Faculty</h2>
+      <p class="section-subtitle">Dedicated mentors guiding every step</p>
+      <div class="faculty-grid">
+        <div class="faculty-card">
+          <div class="avatar">Director</div>
+          <h3>Mrs. Ashwini</h3>
+          <span>All Subjects Expert, 15+ yrs</span>
+        </div>
+        <div class="faculty-card">
+          <div class="avatar">Staff</div>
+          <h3>Mrs. Teju</h3>
+          <span>All Subject Expert, 10+ yrs</span>
+        </div>
+        <div class="faculty-card">
+          <div class="avatar">Staff</div>
+          <h3>Mrs. Navya</h3>
+          <span>All Subjects Expert 2+ yrs</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== TESTIMONIALS ===== -->
+  <section class="testimonials" id="testimonials">
+    <div class="container">
+      <h2 class="section-title">What Parents & Students Say</h2>
+      <div class="testimonial-box">
+        <p id="testimonialText">"Loading testimonials..."</p>
+        <h4 id="testimonialAuthor"></h4>
+        <div class="testimonial-dots" id="testimonialDots"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== CONTACT ===== -->
+  <section class="contact" id="contact">
+    <div class="container contact-grid">
+      <div class="contact-info">
+        <h2 class="section-title left">Get In Touch</h2>
+        <p>Have questions? Book a class or ask about admissions — we'll get back to you shortly.</p>
+        <a href="https://share.google/kz6DYol2QMqgil59p" target="_blank" rel="noopener noreferrer">
+        <p>📍 3rd Cross 3rd Block Vishwapriya Layout Begur</p>
+        </a>
+        <a href="tel:+917411222720" class="your-button-class">📞 +91 7411222720</a>
+        <p>🌐 smartmind.co.in</p>
+        <p>🕑 Mon – Sat: 5:00 PM – 8:00 PM</p>
+        <a
+          href="https://wa.me/917411222720?text=Hi%2C%20I%27m%20interested%20in%20Smart%20Mind%20Tuition%20Centre"
+          class="btn btn-whatsapp"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          💬 Chat on WhatsApp
+        </a>
+      </div>
+
+      <form
+        class="contact-form"
+        id="contactForm"
+        action="https://formspree.io/f/YOUR_FORM_ID"
+        method="POST"
+        novalidate
+      >
+        <div class="form-group">
+          <label for="name">Full Name</label>
+          <input type="text" id="name" name="name" placeholder="Enter your name" />
+          <span class="error-msg" id="nameError"></span>
+        </div>
+        <div class="form-group">
+          <label for="email">Email Address</label>
+          <input type="email" id="email" name="email" placeholder="Enter your email" />
+          <span class="error-msg" id="emailError"></span>
+        </div>
+        <div class="form-group">
+          <label for="phone">Phone Number</label>
+          <input type="tel" id="phone" name="phone" placeholder="Enter your phone number" />
+          <span class="error-msg" id="phoneError"></span>
+        </div>
+        <div class="form-group">
+          <label for="course">Interested Course</label>
+          <select id="course" name="course">
+            <option value="">Select a course</option>
+            <option>School Tuition (Grades 1–10)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="message">Message</label>
+          <textarea id="message" name="message" rows="4" placeholder="Tell us what you need..."></textarea>
+        </div>
+        <!-- Honeypot field to reduce spam bots (keep hidden, Formspree ignores real submissions with this filled) -->
+        <input type="text" name="_gotcha" style="display:none" tabindex="-1" autocomplete="off" />
+        <button type="submit" class="btn btn-primary full-width">Send Message</button>
+        <p class="form-success" id="formSuccess">✅ Thank you! Your message has been sent. We'll contact you soon.</p>
+        <p class="form-error" id="formError"></p>
+      </form>
+    </div>
+  </section>
+
+  <!-- ===== FOOTER ===== -->
+  <footer class="footer">
+    <div class="container footer-content">
+      <div>
+        <h3>Smart Mind Tuition Centre</h3>
+        <p>Empowering students to learn smarter, not harder.</p>
+      </div>
+      <div>
+        <h4>Quick Links</h4>
+        <ul>
+          <li><a href="#about">About</a></li>
+          <li><a href="#courses">Courses</a></li>
+          <li><a href="#faculty">Faculty</a></li>
+          <li><a href="#contact">Contact</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Follow Us</h4>
+        <div class="social-links">
+          <a href="https://www.facebook.com/ashwini.bala.946" target="_blank">👤 Facebook</a>
+          <a href="https://www.instagram.com/spk.ashwinianu/" target="_blank">📷 Instagram</a>
+          <a href="https://wa.me/917411222720" target="_blank" rel="noopener noreferrer">💬 WhatsApp</a>
+        </div>
+      </div>
+    </div>
+    <p class="copyright">© <span id="year"></span> Smart Mind Tuition Centre. All rights reserved.</p>
+  </footer>
+
+  <a
+    href="https://wa.me/917411222720?text=Hi%2C%20I%27m%20interested%20in%20Smart%20Mind%20Tuition%20Centre"
+    class="whatsapp-float"
+    target="_blank"
+    rel="noopener noreferrer"
+    aria-label="Chat with us on WhatsApp"
+  >
+    <svg viewBox="0 0 32 32" width="30" height="30" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+      <path d="M16 3C9.4 3 4 8.4 4 15c0 2.4.7 4.6 1.9 6.5L4 29l7.7-1.9C13.5 27.9 14.7 28 16 28c6.6 0 12-5.4 12-12S22.6 3 16 3zm0 22c-1.2 0-2.4-.2-3.5-.6l-.5-.2-4.6 1.2 1.2-4.5-.3-.5C7.5 18.9 7 17 7 15c0-5 4-9 9-9s9 4 9 9-4 9-9 9z"/>
+      <path d="M21.2 17.6c-.3-.1-1.6-.8-1.9-.9-.3-.1-.5-.1-.6.1-.2.3-.7.9-.9 1.1-.2.2-.3.2-.6.1-.3-.1-1.3-.5-2.4-1.5-.9-.8-1.5-1.8-1.7-2.1-.2-.3 0-.5.1-.6.1-.1.3-.3.4-.5.1-.2.2-.3.3-.5.1-.2 0-.4 0-.5 0-.1-.6-1.4-.8-1.9-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.5.1-.7.3-.2.2-.9.9-.9 2.2s1 2.6 1.1 2.8c.1.2 2 3 4.8 4.2.7.3 1.2.5 1.6.6.7.2 1.3.2 1.8.1.5-.1 1.6-.6 1.8-1.3.2-.6.2-1.1.2-1.2-.1-.1-.3-.2-.5-.3z"/>
+    </svg>
+  </a>
+
+  <button id="backToTop" class="back-to-top" aria-label="Back to top">↑</button>
+
+  <script src="script.js"></script>
+</body>
+</html>
