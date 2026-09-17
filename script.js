@@ -10,7 +10,7 @@
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxgXiyS_fo0BdjLB0jmDcNjKO1JE0m5TYpM0PP8hXZFYQWGb-827m_sWlbo7h9usG2G/exec';
 
 const CONFIG = {
-  whatsappNumber: '91741122720', // used for the enquiry-form message link
+  whatsappNumber: '917411222720', // used for the enquiry-form message link
   autoplayDelay: 5000,            // ms between automatic testimonial slides
   swipeThreshold: 40,             // px of horizontal swipe needed to change slide (touch)
   countUpDuration: 1100,          // ms for the hero stats "count up" animation
@@ -263,12 +263,12 @@ const form = document.getElementById("enquiryForm");
 const submitBtn = document.getElementById("submitBtn");
 const btnLabel = submitBtn?.querySelector(".btn-label");
 const btnSpinner = submitBtn?.querySelector(".btn-spinner");
-const statusBox = document.getElementById("formStatus");
+const statusBox = document.getElementById("formMessage");
 
 function setStatus(kind, message) {
   if (!statusBox) return;
   statusBox.hidden = false;
-  statusBox.className = "form-status " + kind;
+  statusBox.className = "form-message " + kind;
   statusBox.textContent = message;
   statusBox.scrollIntoView({ behavior: "smooth", block: "nearest" });
 }
