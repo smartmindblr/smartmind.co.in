@@ -1,331 +1,370 @@
-// =========================================================
-// Smart Mind Tuition Centre - script.js
-// =========================================================
+// =============================================================================
+// EDIT SETTINGS HERE — change these numbers to tune behavior. Everything below
+// this block reads from CONFIG instead of using hardcoded numbers, so this is
+// the one place to adjust timing/feel without hunting through the file.
+// =============================================================================
+// Google Apps Script Web App URL that the enquiry form posts to.
+// PASTE_YOUR_... is a placeholder — replace it with your deployed Apps
+// Script /exec URL (see README.md for setup steps) or the form will show
+// a "not connected" error instead of submitting.
+const SCRIPT_URL = https://script.google.com/macros/s/AKfycbzIfoXQa2Xa_11YC4MgdjcwUm40rw-Ry7LKgf42Onty63lZWmx53rlb00BJ_QKqkEKR/exec;
 
-document.addEventListener('DOMContentLoaded', () => {
-  initNavbar();
-  initCourses();
-  initCounters();
-  initTestimonials();
-  initContactForm();
-  initBackToTop();
-  document.getElementById('year').textContent = new Date().getFullYear();
+const CONFIG = {
+  whatsappNumber: '91741122720', // used for the enquiry-form message link
+  autoplayDelay: 5000,            // ms between automatic testimonial slides
+  swipeThreshold: 40,             // px of horizontal swipe needed to change slide (touch)
+  countUpDuration: 1100,          // ms for the hero stats "count up" animation
+  cursorGlowSmoothing: 0.12,      // 0–1, how quickly the glow catches up to the cursor (higher = snappier)
+  tiltStrength: 8,                // degrees of max card tilt on mouse move
+};
+
+// Detected once and reused everywhere below — these two conditions gate most
+// of the "extra" effects (glow, tilt, autoplay, reveal animations).
+const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const isFinePointer = window.matchMedia('(pointer: fine)').matches; // true = mouse/trackpad, false = touch
+
+
+// =============================================================================
+// MOBILE NAV — hamburger menu open/close + closes automatically on link click
+// or Escape key. # WORKING CONDITION: only visible/relevant below the 900px
+// breakpoint (see style.css .menu-toggle), but the JS itself runs everywhere.
+// =============================================================================
+const menuToggle = document.querySelector('.menu-toggle');
+const navLinks = document.querySelector('.nav-links');
+menuToggle?.addEventListener('click', () => {
+  const open = navLinks.classList.toggle('open');
+  menuToggle.setAttribute('aria-expanded', open);
+  menuToggle.textContent = open ? '✕' : '☰';
+});
+document.querySelectorAll('.nav-links a').forEach(a => a.addEventListener('click', () => {
+  navLinks.classList.remove('open');
+  menuToggle?.setAttribute('aria-expanded', 'false');
+  if (menuToggle) menuToggle.textContent = '☰';
+}));
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && navLinks.classList.contains('open')) {
+    navLinks.classList.remove('open');
+    menuToggle?.setAttribute('aria-expanded', 'false');
+    menuToggle?.focus();
+  }
 });
 
-/* ---------------- NAVBAR (mobile toggle + active link) ---------------- */
-function initNavbar() {
-  const hamburger = document.getElementById('hamburger');
-  const navLinks = document.getElementById('navLinks');
 
-  hamburger.addEventListener('click', () => {
-    navLinks.classList.toggle('open');
-    hamburger.classList.toggle('active');
-  });
+// =============================================================================
+// TESTIMONIAL SLIDER — dots, prev/next buttons, autoplay, and touch swipe.
+// # WORKING CONDITION: autoplay pauses on hover/keyboard-focus and stops
+// entirely if the visitor has reduced-motion enabled. Swipe only fires on
+// touch events, so it's inert on desktop.
+// =============================================================================
+const reviews = [...document.querySelectorAll('.review')];
+const dotsWrap = document.querySelector('.slider-dots');
+const sliderEl = document.querySelector('.review-slider');
+let reviewIndex = 0;
+let autoplayTimer = null;
 
-  // Close menu after clicking a link (mobile)
-  navLinks.querySelectorAll('a').forEach(link => {
-    link.addEventListener('click', () => {
-      navLinks.classList.remove('open');
+reviews.forEach((_, i) => {
+  const dot = document.createElement('button');
+  dot.type = 'button';
+  dot.className = 'dot' + (i === 0 ? ' active' : '');
+  dot.setAttribute('aria-label', `Show testimonial ${i + 1} of ${reviews.length}`);
+  dot.addEventListener('click', () => { showReview(i); restartAutoplay(); });
+  dotsWrap.appendChild(dot);
+});
 
-      navLinks.querySelectorAll('a').forEach(l => l.classList.remove('active'));
-      link.classList.add('active');
-    });
-  });
+function showReview(i) {
+  reviewIndex = (i + reviews.length) % reviews.length;
+  reviews.forEach((r, n) => r.classList.toggle('active', n === reviewIndex));
+  [...dotsWrap.children].forEach((d, n) => d.classList.toggle('active', n === reviewIndex));
+}
 
-  // Highlight nav link based on scroll position
-  const sections = document.querySelectorAll('section[id]');
-  window.addEventListener('scroll', () => {
-    let current = '';
-    sections.forEach(section => {
-      const sectionTop = section.offsetTop - 100;
-      if (window.scrollY >= sectionTop) {
-        current = section.getAttribute('id');
+function startAutoplay() {
+  if (prefersReducedMotion) return; // # condition: never autoplay if reduced-motion is on
+  autoplayTimer = setInterval(() => showReview(reviewIndex + 1), CONFIG.autoplayDelay);
+}
+function stopAutoplay() { clearInterval(autoplayTimer); }
+function restartAutoplay() { stopAutoplay(); startAutoplay(); }
+
+document.querySelector('.review-prev')?.addEventListener('click', () => { showReview(reviewIndex - 1); restartAutoplay(); });
+document.querySelector('.review-next')?.addEventListener('click', () => { showReview(reviewIndex + 1); restartAutoplay(); });
+sliderEl?.addEventListener('mouseenter', stopAutoplay);
+sliderEl?.addEventListener('mouseleave', startAutoplay);
+sliderEl?.addEventListener('focusin', stopAutoplay);
+sliderEl?.addEventListener('focusout', startAutoplay);
+startAutoplay();
+
+// Swipe left/right on the slider — # condition: only responds to touchstart/touchend,
+// so it simply never fires with a mouse.
+(() => {
+  if (!sliderEl) return;
+  let touchStartX = 0;
+  sliderEl.addEventListener('touchstart', e => { touchStartX = e.changedTouches[0].clientX; stopAutoplay(); }, { passive: true });
+  sliderEl.addEventListener('touchend', e => {
+    const delta = e.changedTouches[0].clientX - touchStartX;
+    if (Math.abs(delta) > CONFIG.swipeThreshold) showReview(reviewIndex + (delta < 0 ? 1 : -1));
+    startAutoplay();
+  }, { passive: true });
+})();
+
+
+// =============================================================================
+// SCROLL-REVEAL — fades/slides elements with the .reveal class in as they
+// enter the viewport. # WORKING CONDITION: if reduced-motion is on, every
+// element is shown immediately (.show added with no animation) instead.
+// =============================================================================
+document.querySelectorAll('.reveal').forEach(el => {
+  if (prefersReducedMotion) { el.classList.add('show'); return; }
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => { if (entry.isIntersecting) { entry.target.classList.add('show'); observer.unobserve(entry.target); }});
+  }, {threshold: .12});
+  observer.observe(el);
+});
+
+
+// =============================================================================
+// SCROLLSPY — highlights the nav link matching whichever section is centered
+// in the viewport. # WORKING CONDITION: always active; purely visual (adds/
+// removes an .active class), no effect on reduced-motion visitors.
+// =============================================================================
+const sections = [...document.querySelectorAll('main [id]')];
+const navAnchors = [...document.querySelectorAll('.nav-links a[href^="#"]')];
+if (sections.length && navAnchors.length) {
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      const link = navAnchors.find(a => a.getAttribute('href') === '#' + entry.target.id);
+      if (!link) return;
+      if (entry.isIntersecting) {
+        navAnchors.forEach(a => a.classList.remove('active'));
+        link.classList.add('active');
       }
     });
-    navLinks.querySelectorAll('a').forEach(link => {
-      link.classList.toggle('active', link.getAttribute('href') === `#${current}`);
+  }, { rootMargin: '-45% 0px -50% 0px' });
+  sections.forEach(s => spy.observe(s));
+}
+
+
+// =============================================================================
+// CURSOR-FOLLOW GLOW — a soft glow that trails the mouse, smoothed frame by
+// frame instead of snapping straight to the pointer.
+// # WORKING CONDITION: ONLY runs if (a) the device has a fine pointer (mouse/
+// trackpad — checked once at the top of the file) AND (b) reduced-motion is
+// OFF. On touch devices or with reduced-motion on, this whole block is
+// skipped and the glow element stays invisible (see style.css opacity:0).
+// =============================================================================
+(() => {
+  if (!isFinePointer || prefersReducedMotion) return;
+  const glow = document.querySelector('.cursor-glow');
+  if (!glow) return;
+  let targetX = window.innerWidth / 2, targetY = window.innerHeight / 2;
+  let curX = targetX, curY = targetY;
+  let active = false;
+
+  window.addEventListener('pointermove', e => {
+    if (e.pointerType !== 'mouse') return; // # condition: ignore touch/pen pointer events
+    targetX = e.clientX; targetY = e.clientY;
+    if (!active) { active = true; glow.classList.add('active'); }
+  });
+  document.addEventListener('mouseleave', () => { active = false; glow.classList.remove('active'); });
+
+  function loop() {
+    // Lerp (linear interpolation) toward the target position each frame —
+    // CONFIG.cursorGlowSmoothing controls how "laggy" vs "snappy" this feels.
+    curX += (targetX - curX) * CONFIG.cursorGlowSmoothing;
+    curY += (targetY - curY) * CONFIG.cursorGlowSmoothing;
+    glow.style.transform = `translate(${curX}px, ${curY}px)`;
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+})();
+
+
+// =============================================================================
+// 3D CARD TILT — course/benefit cards tilt toward the cursor on mousemove.
+// # WORKING CONDITION: same gate as the cursor glow — fine pointer only, and
+// disabled entirely under reduced-motion. Never attaches on touch devices.
+// =============================================================================
+if (isFinePointer && !prefersReducedMotion) {
+  document.querySelectorAll('.course-card, .benefit').forEach(card => {
+    card.addEventListener('mousemove', e => {
+      const r = card.getBoundingClientRect();
+      const px = (e.clientX - r.left) / r.width - 0.5;
+      const py = (e.clientY - r.top) / r.height - 0.5;
+      const t = CONFIG.tiltStrength;
+      card.style.transform = `perspective(700px) rotateX(${(-py * t).toFixed(2)}deg) rotateY(${(px * t).toFixed(2)}deg) translateY(-4px)`;
     });
+    card.addEventListener('mouseleave', () => { card.style.transform = ''; });
   });
 }
 
-/* ---------------- COURSES DATA + RENDER ---------------- */
-function initCourses() {
-  const courses = [
-    {
-      icon: '📖 STATE',
-      title: 'School Tuition (Grades 1–2)',
-      desc: 'All subjects covered with concept-based teaching, and regular tests.',
-      price: 'STATE ₹2,000/month'  
-    },
-    {
-      icon: '📖 CBSC/ICSE',
-      title: 'School Tuition (Grades 1–2)',
-      desc: 'All subjects covered with concept-based teaching, and regular tests.',
-      price: 'From ₹2,500/month'  
-    },
-    {
-      icon: '📖 STATE',
-      title: 'School Tuition (Grades 3–4)',
-      desc: 'All subjects covered with concept-based teaching, and regular tests.',
-      price: 'From ₹2,500/month'
-    },
-    {
-      icon: '📖 CBSC/ICSE',
-      title: 'School Tuition (Grades 3–4)',
-      desc: 'All subjects covered with concept-based teaching, and regular tests.',
-      price: 'From ₹3,000/month'  
-    },
-    {
-      icon: '📖 STATE',
-      title: 'School Tuition (Grades 5-6)',
-      desc: 'All subjects covered with concept-based teaching, and regular tests.',
-      price: 'From ₹3,000/month'
-    },
-    {
-      icon: '📖 CBSC/ICSE',
-      title: 'School Tuition (Grades 5–6)',
-      desc: 'All subjects covered with concept-based teaching, and regular tests.',
-      price: 'From ₹4,500/month'  
-    },
-    {
-      icon: '📖 STATE',
-      title: 'School Tuition (Grades 7–8)',
-      desc: 'All subjects covered with concept-based teaching, and regular tests.',
-      price: 'From ₹3,500/month'  
-    },
-    {
-      icon: '📖 CBSC/ICSE',
-      title: 'School Tuition (Grades 7–8)',
-      desc: 'All subjects covered with concept-based teaching, and regular tests.',
-      price: 'From ₹4,500/month'  
-    },
-    {
-      icon: '📖 STATE',
-      title: 'School Tuition (Grades 9–10)',
-      desc: 'All subjects covered with concept-based teaching, and regular tests.',
-      price: 'From ₹4,000/month'  
-    },
-    {
-      icon: '📖 CBSC/ICSE',
-      title: 'School Tuition (Grades 9–10)',
-      desc: 'All subjects covered with concept-based teaching, and regular tests.',
-      price: 'From ₹5,000/month'  
-    },
-  ];
 
-  const grid = document.getElementById('coursesGrid');
-  grid.innerHTML = courses.map(course => `
-    <div class="course-card">
-      <div class="course-icon">${course.icon}</div>
-      <h3>${course.title}</h3>
-      <p>${course.desc}</p>
-      <div class="price">${course.price}</div>
-    </div>
-  `).join('');
+// =============================================================================
+// RIPPLE / TAP FEEDBACK — a small expanding circle on buttons and cards.
+// # WORKING CONDITION: fires on "pointerdown", which covers BOTH touch taps and
+// mouse clicks — this is the one effect that intentionally runs everywhere,
+// since tap feedback is just as useful on desktop as on mobile.
+// =============================================================================
+document.querySelectorAll('.btn, .nav-cta, .whatsapp-float, .course-card, .benefit').forEach(el => {
+  el.addEventListener('pointerdown', e => {
+    const r = el.getBoundingClientRect();
+    const size = Math.max(r.width, r.height) * 1.4;
+    const span = document.createElement('span');
+    span.className = 'ripple';
+    span.style.width = span.style.height = `${size}px`;
+    span.style.left = `${(e.clientX ?? r.left + r.width / 2) - r.left - size / 2}px`;
+    span.style.top = `${(e.clientY ?? r.top + r.height / 2) - r.top - size / 2}px`;
+    el.appendChild(span);
+    span.addEventListener('animationend', () => span.remove());
+  });
+});
+
+
+// =============================================================================
+// COUNT-UP STATS — animates "500+ / 10+ / 3" from zero once scrolled into view.
+// # WORKING CONDITION: triggers once, the first time the stats row is 40%
+// visible. If reduced-motion is on, the final numbers are set instantly
+// with no animation instead of counting up.
+// =============================================================================
+(() => {
+  const statEls = [...document.querySelectorAll('.stats [data-count]')];
+  if (!statEls.length) return;
+  const animateCount = el => {
+    const target = parseInt(el.dataset.count, 10);
+    const suffix = el.dataset.suffix || '';
+    if (prefersReducedMotion) { el.textContent = target + suffix; return; }
+    const start = performance.now();
+    function tick(now) {
+      const progress = Math.min((now - start) / CONFIG.countUpDuration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3); // ease-out cubic
+      el.textContent = Math.round(eased * target) + suffix;
+      if (progress < 1) requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  };
+  const statsWrap = document.querySelector('.stats');
+  if (!statsWrap) return;
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) { statEls.forEach(animateCount); obs.disconnect(); }
+    });
+  }, { threshold: .4 });
+  obs.observe(statsWrap);
+})();
+
+
+// =============================================================================
+// ENQUIRY FORM → GOOGLE SHEETS SUBMISSION
+// # WORKING CONDITION: runs on form submit; posts JSON to a Google Apps
+// Script Web App (SCRIPT_URL above) instead of opening WhatsApp. Requires
+// matching field names in index.html's #enquiryForm: parentName, phone,
+// email, grade, board, subject, mode, message, and a hidden honeypot field
+// named "website". Also requires #submitBtn (with a ".btn-label" and
+// ".btn-spinner" child) and #formStatus in the markup.
+// =============================================================================
+const form = document.getElementById("enquiryForm");
+const submitBtn = document.getElementById("submitBtn");
+const btnLabel = submitBtn?.querySelector(".btn-label");
+const btnSpinner = submitBtn?.querySelector(".btn-spinner");
+const statusBox = document.getElementById("formStatus");
+
+function setStatus(kind, message) {
+  if (!statusBox) return;
+  statusBox.hidden = false;
+  statusBox.className = "form-status " + kind;
+  statusBox.textContent = message;
+  statusBox.scrollIntoView({ behavior: "smooth", block: "nearest" });
 }
 
-/* ---------------- ANIMATED COUNTERS ---------------- */
-function initCounters() {
-  const targets = {
-    'stat-students': 1000,
-    'stat-years': 12,
-    'stat-results': 95
+function setLoading(isLoading) {
+  if (!submitBtn) return;
+  submitBtn.disabled = isLoading;
+  if (btnSpinner) btnSpinner.hidden = !isLoading;
+  if (btnLabel) btnLabel.textContent = isLoading ? "Sending…" : "Send enquiry";
+}
+
+function isValidPhone(value) {
+  const digits = value.replace(/\D/g, "");
+  return digits.length >= 10;
+}
+
+form?.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  if (statusBox) statusBox.hidden = true;
+
+  // Honeypot: if this hidden field got filled in, silently drop it (likely a bot).
+  // Optional chaining so this stays safe even if the field is ever removed from the HTML.
+  if (form.website?.value.trim() !== "") {
+    return;
+  }
+
+  // email/board/subject/mode are optional-chained: this form doesn't currently
+  // collect them, so they're left blank in the Sheet unless you add the fields.
+  const payload = {
+    name: form.parentName.value.trim(),
+    phone: form.phone.value.trim(),
+    email: form.email?.value.trim() || "",
+    grade: form.grade.value,
+    board: form.board?.value || "",
+    subject: form.subject?.value.trim() || "",
+    mode: form.mode?.value || "",
+    message: form.message.value.trim(),
+    page: window.location.href,
+    submittedAt: new Date().toISOString()
   };
 
-  const els = Object.keys(targets).map(id => document.getElementById(id));
-  let started = false;
-
-  function animate(el, target) {
-    let count = 0;
-    const step = Math.max(1, Math.ceil(target / 60));
-    const timer = setInterval(() => {
-      count += step;
-      if (count >= target) {
-        count = target;
-        clearInterval(timer);
-      }
-      el.textContent = count + (target === 95 ? '' : '+');
-    }, 25);
+  // Basic client-side validation
+  if (!payload.name || !payload.phone || !payload.grade) {
+    setStatus("error", "Please fill in your name, phone number and class before sending.");
+    return;
+  }
+  if (!isValidPhone(payload.phone)) {
+    setStatus("error", "That phone number doesn't look right — please double-check it.");
+    return;
   }
 
-  function checkAndStart() {
-    if (started) return;
-    const hero = document.querySelector('.hero-stats');
-    const rect = hero.getBoundingClientRect();
-    if (rect.top < window.innerHeight) {
-      started = true;
-      Object.entries(targets).forEach(([id, val]) => animate(document.getElementById(id), val));
-      window.removeEventListener('scroll', checkAndStart);
+  if (SCRIPT_URL.startsWith("PASTE_YOUR")) {
+    setStatus("error", "Enquiry form isn't connected to Google Sheets yet — see README.md for setup steps.");
+    return;
+  }
+
+  setLoading(true);
+  try {
+    const res = await fetch(SCRIPT_URL, {
+      method: "POST",
+      // text/plain avoids a CORS preflight; Apps Script still reads the raw JSON body fine.
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify(payload)
+    });
+
+    let ok = res.ok;
+    try {
+      const data = await res.json();
+      ok = ok && data.result === "success";
+    } catch (_) {
+      // If the response isn't JSON for some reason, fall back to res.ok
     }
-  }
 
-  window.addEventListener('scroll', checkAndStart);
-  checkAndStart(); // in case hero is already in view on load
-}
-
-/* ---------------- TESTIMONIAL SLIDER ---------------- */
-function initTestimonials() {
-  const testimonials = [
-    {
-      text: '"Smart Mind Tuition Centre transformed my daughter\u2019s approach to Math. Her grades improved from a C to an A within one term!"',
-      author: '— Mrs. Kapoor, Parent'
-    },
-    {
-      text: '"The teachers here genuinely care about every student. The doubt-clearing sessions are a lifesaver before exams."',
-      author: '— Rohan S., Grade 10 Student'
-    },
-    {
-      text: '"Affordable, professional, and effective. I recommend Smart Mind to every parent in my neighborhood."',
-      author: '— Mr. Iyer, Parent'
-    },
-    {
-      text: '"I cleared my entrance exam thanks to the focused coaching and mock tests provided here."',
-      author: '— Priya M., Student'
+    if (ok) {
+      form.reset();
+      setStatus(
+        "success",
+        `Thanks, ${payload.name.split(" ")[0]}! We've received your enquiry and will call you at ${payload.phone} shortly. You can also message us on WhatsApp any time.`
+      );
+    } else {
+      throw new Error("Non-success response from server");
     }
-  ];
-
-  const textEl = document.getElementById('testimonialText');
-  const authorEl = document.getElementById('testimonialAuthor');
-  const dotsEl = document.getElementById('testimonialDots');
-
-  let current = 0;
-
-  testimonials.forEach((_, i) => {
-    const dot = document.createElement('span');
-    if (i === 0) dot.classList.add('active');
-    dot.addEventListener('click', () => showTestimonial(i));
-    dotsEl.appendChild(dot);
-  });
-
-  function showTestimonial(index) {
-    current = index;
-    textEl.textContent = testimonials[current].text;
-    authorEl.textContent = testimonials[current].author;
-    [...dotsEl.children].forEach((dot, i) => dot.classList.toggle('active', i === current));
+  } catch (err) {
+    setStatus(
+      "error",
+      "We couldn't send that just now — please try again, or reach us directly on WhatsApp or by phone."
+    );
+  } finally {
+    setLoading(false);
   }
-
-  showTestimonial(0);
-
-  setInterval(() => {
-    showTestimonial((current + 1) % testimonials.length);
-  }, 5000);
-}
-
-/* ---------------- CONTACT FORM VALIDATION ---------------- */
-function initContactForm() {
-  const form = document.getElementById('contactForm');
-  const success = document.getElementById('formSuccess');
-
-  const nameInput = document.getElementById('name');
-  const emailInput = document.getElementById('email');
-  const phoneInput = document.getElementById('phone');
-
-  const submitBtn = form.querySelector('button[type="submit"]');
-  const errorBox = document.getElementById('formError');
-
-  form.addEventListener('submit', (e) => {
-    e.preventDefault();
-    success.classList.remove('show');
-    if (errorBox) errorBox.classList.remove('show');
-
-    let isValid = true;
-    isValid = validateName() && isValid;
-    isValid = validateEmail() && isValid;
-    isValid = validatePhone() && isValid;
-
-    if (!isValid) return;
-
-    const originalBtnText = submitBtn.textContent;
-    submitBtn.disabled = true;
-    submitBtn.textContent = 'Sending...';
-
-    const formData = new FormData(form);
-
-    fetch(form.action, {
-      method: 'POST',
-      body: formData,
-      headers: { 'Accept': 'application/json' }
-    })
-      .then((response) => {
-        if (response.ok) {
-          success.classList.add('show');
-          form.reset();
-          setTimeout(() => success.classList.remove('show'), 6000);
-        } else {
-          return response.json().then((data) => {
-            throw new Error(
-              (data && data.errors && data.errors.map(e => e.message).join(', ')) ||
-              'Something went wrong. Please try again.'
-            );
-          });
-        }
-      })
-      .catch((err) => {
-        if (errorBox) {
-          errorBox.textContent = '❌ ' + (err.message || 'Could not send your message. Please try again or contact us directly.');
-          errorBox.classList.add('show');
-        }
-      })
-      .finally(() => {
-        submitBtn.disabled = false;
-        submitBtn.textContent = originalBtnText;
-      });
-  });
-
-  function validateName() {
-    const val = nameInput.value.trim();
-    const errorEl = document.getElementById('nameError');
-    if (val.length < 2) {
-      showError(nameInput, errorEl, 'Please enter your full name.');
-      return false;
-    }
-    clearError(nameInput, errorEl);
-    return true;
-  }
-
-  function validateEmail() {
-    const val = emailInput.value.trim();
-    const errorEl = document.getElementById('emailError');
-    const pattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!pattern.test(val)) {
-      showError(emailInput, errorEl, 'Please enter a valid email address.');
-      return false;
-    }
-    clearError(emailInput, errorEl);
-    return true;
-  }
-
-  function validatePhone() {
-    const val = phoneInput.value.trim();
-    const errorEl = document.getElementById('phoneError');
-    const pattern = /^[0-9+\-\s()]{7,15}$/;
-    if (!pattern.test(val)) {
-      showError(phoneInput, errorEl, 'Please enter a valid phone number.');
-      return false;
-    }
-    clearError(phoneInput, errorEl);
-    return true;
-  }
-
-  function showError(input, errorEl, message) {
-    input.classList.add('invalid');
-    errorEl.textContent = message;
-  }
-
-  function clearError(input, errorEl) {
-    input.classList.remove('invalid');
-    errorEl.textContent = '';
-  }
-
-  // Live validation as user types
-  nameInput.addEventListener('input', validateName);
-  emailInput.addEventListener('input', validateEmail);
-  phoneInput.addEventListener('input', validatePhone);
-}
+});
 
 /* ---------------- BACK TO TOP BUTTON ---------------- */
 function initBackToTop() {
   const btn = document.getElementById('backToTop');
+  if (!btn) return;
 
   window.addEventListener('scroll', () => {
     btn.classList.toggle('show', window.scrollY > 400);
@@ -334,4 +373,30 @@ function initBackToTop() {
   btn.addEventListener('click', () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   });
+}
+initBackToTop();
+
+// =============================================================================
+// FOOTER YEAR — # condition: runs once on load, sets the current year so the
+// copyright line never goes stale.
+// =============================================================================
+const yearEl = document.getElementById('year');
+if (yearEl) yearEl.textContent = new Date().getFullYear();
+
+
+// =============================================================================
+// LOCAL VISIT COUNTER — a per-browser counter stored in localStorage (no
+// backend/database). # WORKING CONDITION: increments by 1 every time this page
+// loads in a given browser; falls back to showing "1" if localStorage is
+// unavailable (e.g. private browsing in some browsers).
+// =============================================================================
+const visitCountEl = document.getElementById('visitCount');
+if (visitCountEl) {
+  try {
+    const count = (parseInt(localStorage.getItem('rr_visit_count') || '0', 10) || 0) + 1;
+    localStorage.setItem('rr_visit_count', String(count));
+    visitCountEl.textContent = count.toLocaleString();
+  } catch (err) {
+    visitCountEl.textContent = '1';
+  }
 }
